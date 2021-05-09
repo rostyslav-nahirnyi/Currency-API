@@ -24,7 +24,7 @@ module.exports = function (app, client) {
     //remove property
     delete req.body["messenger_type"];
 
-    //insering data
+    //inserting data
     db.collection(messenger_type + '-messages').insertOne(req.body, (err, item) => {
       //if mongodb error
       if (err) {

@@ -20,17 +20,33 @@ module.exports = function (app, client) {
 
     const db = client.db("users_db");
 
-    //insering data
-    db.collection('users').insertOne(req.body, (err, item) => {
+    //getting data
+    db.collection('users').findOne({ user_id: req.body.user_id }, (err, item) => {
       //if mongodb error
       if (err) {
         res.statusCode = 500;
         return res.send({ "MongoDBError": err });
       }
 
+      //if item is empty
+      if (!item) {
+        //inserting data
+        db.collection('users').insertOne(req.body, (err, inserted_item) => {
+          //if mongodb error
+          if (err) {
+            res.statusCode = 500;
+            return res.send({ "MongoDBError": err });
+          }
+
+          //send response
+          res.statusCode = 200;
+          return res.send(inserted_item.ops[0]);
+        });
+      }
+
       //send response
       res.statusCode = 200;
-      return res.send(item.ops[0]);
+      return res.send(item);
     });
   });
 
