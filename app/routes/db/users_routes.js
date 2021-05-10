@@ -21,7 +21,7 @@ module.exports = function (app, client) {
     const db = client.db("users_db");
 
     //getting data
-    db.collection('users').findOne({ user_id: req.body.user_id }, (err, item) => {
+    db.collection('users').findOne({ user_id: req.body.user_id, messenger_type: req.body.messenger_type }, (err, item) => {
       //if mongodb error
       if (err) {
         res.statusCode = 500;
