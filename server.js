@@ -5,6 +5,8 @@ const bodyParser = require('body-parser');
 const app = express();
 app.use(bodyParser.json());
 
+const PORT = process.env.PORT || 80;
+
 const mongoClient = new MongoClient(process.env.DB_URL, { useUnifiedTopology: true });
 
 function verifyAccessToken(req, res, next) {
@@ -39,6 +41,6 @@ require('./app/routes/images') (app, verifyAccessToken);
 
 
 
-app.listen(process.env.PORT, () => {
-  console.log('PORT: ' + process.env.PORT);
+app.listen(PORT, () => {
+  console.log('PORT: ' + PORT);
 });
