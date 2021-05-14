@@ -2,7 +2,7 @@ const fs = require('fs')
 const stream = require('stream')
 
 module.exports = function (app) {
-  app.get('/images/:file_name', verifyAccessToken, (req, res) => {
+  app.get('/images/:file_name', (req, res) => {
     const r = fs.createReadStream("images/" + req.params.file_name) // or any other way to get a readable stream
     const ps = new stream.PassThrough() // <---- this makes a trick with stream error handling
     stream.pipeline(
