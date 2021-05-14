@@ -2,13 +2,24 @@ const express = require('express');
 const MongoClient = require('mongodb').MongoClient;
 const bodyParser = require('body-parser');
 
-const db = require('./config/db');
-const PORT = 8000;
-
 const app = express();
 app.use(bodyParser.json());
 
-const mongoClient = new MongoClient(db.url, { useUnifiedTopology: true });
+const mongoClient = new MongoClient(process.env.DB_URL, { useUnifiedTopology: true });
+
+function verifyAccessToken(req, res, next) {
+  if(!req.headers['authorization']) {
+    res.statusCode = 400;
+    return res.send({"description": "Please specify access token!"});
+  }
+  const token = req.headers['authorization'].split(' ')[1];
+  if (token !== process.env.ACCESS_TOKEN) {
+    res.statusCode = 400;
+    return res.send({"description": "Invalid access token!"});
+  } else {
+    next();
+  }
+}
 
 
 
@@ -17,14 +28,17 @@ mongoClient.connect((err, client) => {
   if (err) return node.error("MongoDBError: " + err);
 
   //routes that using db
-  require('./app/routes/db') (app, client);
+  require('./app/routes/db') (app, verifyAccessToken, client);
 });
 
 //minfin routes
-require('./app/routes/minfin') (app);
+require('./app/routes/minfin') (app, verifyAccessToken);
+
+//images routes
+require('./app/routes/images') (app, verifyAccessToken);
 
 
 
-app.listen(PORT, () => {
-  console.log('PORT: ' + PORT);
+app.listen(process.env.PORT, () => {
+  console.log('PORT: ' + process.env.PORT);
 });

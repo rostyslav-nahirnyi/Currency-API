@@ -1,5 +1,5 @@
-module.exports = function (app, client) {
-  app.post('/users', (req, res) => {
+module.exports = function (app, verifyAccessToken, client) {
+  app.post('/users', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.body).length) {
         res.statusCode = 400;
@@ -31,7 +31,7 @@ module.exports = function (app, client) {
       //if item is empty
       if (!item) {
         //inserting data
-        db.collection('users').insertOne(req.body, (err, inserted_item) => {
+        return db.collection('users').insertOne(req.body, (err, inserted_item) => {
           //if mongodb error
           if (err) {
             res.statusCode = 500;
@@ -50,7 +50,7 @@ module.exports = function (app, client) {
     });
   });
 
-  app.get('/users', (req, res) => {
+  app.get('/users', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.query).length) {
         res.statusCode = 400;
@@ -78,7 +78,7 @@ module.exports = function (app, client) {
     });
   });
 
-  app.delete('/users', (req, res) => {
+  app.delete('/users', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.query).length) {
         res.statusCode = 400;
@@ -101,7 +101,7 @@ module.exports = function (app, client) {
     });
   });
 
-  app.put('/users', (req, res) => {
+  app.put('/users', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.query).length) {
         res.statusCode = 400;
@@ -113,6 +113,8 @@ module.exports = function (app, client) {
     }
 
     const db = client.db("users_db");
+
+    console.log(req.query.user_id);
 
     //updating data
     db.collection('users').updateOne(req.query, { "$set" : req.body }, (err, db_response) => {

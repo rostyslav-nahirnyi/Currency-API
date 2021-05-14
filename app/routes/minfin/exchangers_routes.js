@@ -3,11 +3,16 @@ const Jimp = require('jimp');
 
 
 
-//function for printing text on image
-function printTextOnImage(image, font, text, x, y) {
+//functionі for printing text on image
+function printСenteredTextOnImage(image, font, text, x, y) {
   return image.print(font, 0, y, {
-    text: text, alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER
+    text: text,
+    alignmentX: Jimp.HORIZONTAL_ALIGN_CENTER
   }, image.bitmap.width, image.bitmap.height);
+}
+
+function printTextOnImage(image, font, text, x, y) {
+  return image.print(font, x, y, text, image.bitmap.width, image.bitmap.height);
 }
 
 //for printing lines
@@ -17,8 +22,8 @@ function iterator(x, y, offset) {
 
 
 
-module.exports = function (app) {
-  app.get("/exchangers", (req, res) => {
+module.exports = function (app, verifyAccessToken) {
+  app.get("/exchangers", verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.query).length) {
         res.statusCode = 400;
@@ -47,6 +52,29 @@ module.exports = function (app) {
         exchangers = exchangers.filter(element => {
           return element.hasOwnProperty("data") && element.data.hasOwnProperty(["rate_" + req.query["action"]]);
         });
+
+
+
+        //create new image
+        var image = new Jimp(1600, 1160, 'white', (err, image) => {
+          if (err) throw err
+        });
+
+        if (!exchangers.length) {
+          //print text
+          return Jimp.loadFont('fonts/Lregular.fnt')
+            .then(font => {
+              printTextOnImage(image, font, "Не знайдено жодних обмінників", 355, 548);
+            })
+            .then(() => {
+              //save image
+              let file_name = req.query["action"] + "_" + req.query["city_id"] + "_" + req.query["currency"] + "." + image.getExtension();
+              image.write("images/" + file_name);
+
+              res.statusCode = 200;
+              return res.send({ "file_name": file_name });
+            });
+        }
 
 
 
@@ -79,13 +107,8 @@ module.exports = function (app) {
 
 
 
-        //create new image
-        var image = new Jimp(1600, 1160, 'white', (err, image) => {
-          if (err) throw err
-        });
-
         //print text
-        Jimp.loadFont('fonts/Lregular.fnt')
+        return Jimp.loadFont('fonts/Lregular.fnt')
           .then(font => {
             let x = 600;
             let y = 0;
@@ -97,19 +120,19 @@ module.exports = function (app) {
               y += 10;
 
               //print price
-              printTextOnImage(image, font, element.data["rate_" + req.query["action"]] + " " + element.data.currency, x, y);
+              printСenteredTextOnImage(image, font, element.data["rate_" + req.query["action"]] + " " + element.data.currency, x, y);
               y += 94;
 
               //print amount
-              printTextOnImage(image, font, element.data.min_count + " - " + element.data.max_count, x, y);
+              printСenteredTextOnImage(image, font, element.data.min_count + " - " + element.data.max_count, x, y);
               y += 94;
 
               //print phone
-              printTextOnImage(image, font, element.data.branch_id.phone, x, y);
+              printСenteredTextOnImage(image, font, element.data.branch_id.phone, x, y);
               y += 94;
 
               //print address
-              printTextOnImage(image, font, element.data.branch_id.address, x, y);
+              printСenteredTextOnImage(image, font, element.data.branch_id.address, x, y);
               y += 94;
 
 
@@ -121,22 +144,107 @@ module.exports = function (app) {
             });
           })
           .then(() => {
-            //sending response
-            image.getBuffer(Jimp.MIME_PNG, (err, buffer) => {
-              res.statusCode = 200;
+            //save image
+            let file_name = req.query["action"] + "_" + req.query["city_id"] + "_" + req.query["currency"] + "." + image.getExtension();
+            image.write("images/" + file_name);
 
-              res.setHeader("Content-Disposition", "attachment;filename=top.png");
-              res.setHeader('Content-Type', 'image/png');
-              res.setHeader('Content-Length', buffer.length);
-
-              return res.send(buffer);
-            });
+            res.statusCode = 200;
+            return res.send({ "file_name": file_name });
           });
+
 
       })
       .catch((error) => {
         res.statusCode = 500;
         res.send({ "AxiosError": error });
+      });
+  });
+
+  app.get("/exchangers/interbank", verifyAccessToken, (req, res) => {
+
+    //get info
+    axios
+      .get("https://minfin.com.ua/data/currency/ib/usd.ib.today.json")
+      .then((minfin_usd_res) => {
+
+        axios
+          .get("https://minfin.com.ua/data/currency/ib/eur.ib.today.json")
+          .then((minfin_eur_res) => {
+
+            axios
+              .get("https://minfin.com.ua/data/currency/ib/rub.ib.today.json")
+              .then((minfin_rub_res) => {
+                let rows_text = ["КУРС ДО ГРИВНІ", "Покупка", "Продажа"];
+                let cols = {
+                  "ДОЛЛАР": minfin_usd_res.data[minfin_usd_res.data.length-1],
+                  "ЄВРО": minfin_eur_res.data[minfin_eur_res.data.length-1],
+                  "РУБЛЬ": minfin_rub_res.data[minfin_rub_res.data.length-1]
+                };
+
+                //create new image
+                var image = new Jimp(1770, 450, 'white', (err, image) => {
+                  if (err) throw err
+                });
+
+                //print text
+                Jimp.loadFont('fonts/Lregular.fnt')
+                  .then(font => {
+                    let x = 30;
+                    let y = 43;
+
+                    //print borders
+                    image.scan(0, 0, 1770, 2, iterator);
+                    image.scan(1768, 0, 2, 450, iterator);
+                    image.scan(0, 448, 1770, 2, iterator);
+                    image.scan(0, 0, 2, 450, iterator);
+
+                    //print text for rows
+                    rows_text.forEach((text) => {
+                      printTextOnImage(image, font, text, x, y);
+                      y += 107;
+                      if (y != 450) {
+                        image.scan(0, y, 1770, 2, iterator);
+                        y += 43;
+                      }
+                    });
+
+                    x = 690;
+
+                    for (key in cols) {
+
+                      //print rate
+                      printTextOnImage(image, font, key, (x + ((300 - Jimp.measureText(font, key)) / 2)), 43);
+                      printTextOnImage(image, font, cols[key].bid, (x + ((300 - Jimp.measureText(font, key)) / 2)), 193);
+                      printTextOnImage(image, font, cols[key].ask, (x + ((300 - Jimp.measureText(font, key)) / 2)), 343);
+
+                      x += 360
+
+                    }
+                  })
+                  .then(() => {
+                    //save image
+                    let file_name = "mb." + image.getExtension();
+                    image.write("images/" + file_name);
+
+                    res.statusCode = 200;
+                    return res.send({ "file_name": file_name});
+                  });
+              })
+              .catch((error) => {
+                res.statusCode = 500;
+                res.send({ "AxiosError (get rub)": error });
+              });
+
+          })
+          .catch((error) => {
+            res.statusCode = 500;
+            res.send({ "AxiosError (get eur)": error });
+          });
+
+      })
+      .catch((error) => {
+        res.statusCode = 500;
+        res.send({ "AxiosError (get usd)": error });
       });
   });
 };

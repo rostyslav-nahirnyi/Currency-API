@@ -1,5 +1,5 @@
-module.exports = function (app, client) {
-  app.post('/currency', (req, res) => {
+module.exports = function (app, verifyAccessToken, client) {
+  app.post('/currency', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.body).length) {
         res.statusCode = 400;
@@ -30,7 +30,7 @@ module.exports = function (app, client) {
     });
   });
 
-  app.get('/currency', (req, res) => {
+  app.get('/currency', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.query).length) {
         res.statusCode = 400;
@@ -58,7 +58,7 @@ module.exports = function (app, client) {
     });
   });
 
-  app.get('/currency/all', (req, res) => {
+  app.get('/currency/all', verifyAccessToken, (req, res) => {
     const db = client.db("minfin_properties_db");
 
     //getting data
@@ -75,7 +75,7 @@ module.exports = function (app, client) {
     });
   });
 
-  app.delete('/currency', (req, res) => {
+  app.delete('/currency', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.query).length) {
         res.statusCode = 400;
@@ -98,7 +98,7 @@ module.exports = function (app, client) {
     });
   });
 
-  app.put('/currency', (req, res) => {
+  app.put('/currency', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.query).length) {
         res.statusCode = 400;

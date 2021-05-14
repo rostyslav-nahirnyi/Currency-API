@@ -1,5 +1,5 @@
-module.exports = function (app, client) {
-  app.post('/cities', (req, res) => {
+module.exports = function (app, verifyAccessToken, client) {
+  app.post('/cities', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.body).length) {
         res.statusCode = 400;
@@ -30,7 +30,7 @@ module.exports = function (app, client) {
     });
   });
 
-  app.get('/cities', (req, res) => {
+  app.get('/cities', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.query).length) {
         res.statusCode = 400;
@@ -58,7 +58,7 @@ module.exports = function (app, client) {
     });
   });
 
-  app.get('/cities/all', (req, res) => {
+  app.get('/cities/all', verifyAccessToken, (req, res) => {
     const db = client.db("minfin_properties_db");
 
     //getting data
@@ -75,7 +75,7 @@ module.exports = function (app, client) {
     });
   });
 
-  app.delete('/cities', (req, res) => {
+  app.delete('/cities', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.query).length) {
         res.statusCode = 400;
@@ -98,7 +98,7 @@ module.exports = function (app, client) {
     });
   });
 
-  app.put('/cities', (req, res) => {
+  app.put('/cities', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.query).length) {
         res.statusCode = 400;

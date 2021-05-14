@@ -1,5 +1,5 @@
-module.exports = function (app, client) {
-  app.post('/messages', (req, res) => {
+module.exports = function (app, verifyAccessToken, client) {
+  app.post('/messages', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.body).length) {
         res.statusCode = 400;
@@ -38,7 +38,7 @@ module.exports = function (app, client) {
     });
   });
 
-  app.get('/messages', (req, res) => {
+  app.get('/messages', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.query).length) {
         res.statusCode = 400;
@@ -78,7 +78,7 @@ module.exports = function (app, client) {
     });
   });
 
-  app.delete('/messages', (req, res) => {
+  app.delete('/messages', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.query).length) {
         res.statusCode = 400;
@@ -113,7 +113,7 @@ module.exports = function (app, client) {
     });
   });
 
-  app.put('/messages', (req, res) => {
+  app.put('/messages', verifyAccessToken, (req, res) => {
     //required data
     if (!Object.keys(req.query).length) {
         res.statusCode = 400;
