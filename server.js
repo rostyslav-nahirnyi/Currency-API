@@ -9,12 +9,12 @@ const mongoClient = new MongoClient(process.env.DB_URL, { useUnifiedTopology: tr
 
 function verifyAccessToken(req, res, next) {
   if(!req.headers['authorization']) {
-    res.statusCode = 400;
+    res.statusCode = 401;
     return res.send({"description": "Please specify access token!"});
   }
   const token = req.headers['authorization'].split(' ')[1];
   if (token !== process.env.ACCESS_TOKEN) {
-    res.statusCode = 400;
+    res.statusCode = 401;
     return res.send({"description": "Invalid access token!"});
   } else {
     next();
