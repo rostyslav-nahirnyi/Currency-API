@@ -37,7 +37,7 @@ mongoClient.connect((err, client) => {
 require('./app/routes/minfin') (app, verifyAccessToken);
 
 //images routes
-require('./app/routes/images') (app, verifyAccessToken);
+require('./app/routes/images') (app);
 
 
 
